@@ -13,3 +13,7 @@
 - **AI 机器人** - 内置机器人逻辑，可配置策略
 - **房间系统** - 公共房、私人房（俱乐部）、比赛场，支持自动匹配
 - **微信集成** - OAuth2 登录、好友分享、语音聊天（云娃 SDK）
+
+For purchase or game operation & maintenance, please contact WeChat: 1596816409
+
+需要购买或者游戏运维请联系微信1596816409
