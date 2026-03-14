@@ -1,0 +1,353 @@
+# WNMJ - Open Source Card & Board Game Platform
+
+**[中文](#中文说明) | English**
+
+A full-featured, production-grade online card and board game platform built with **Cocos2d-x 3.10** (client) and **C++ IOCP** (server). Includes 7 classic Chinese card games with complete client-server architecture, cross-platform support, and extensible game framework.
+
+---
+
+## Highlights
+
+- **7 Complete Games** - Mahjong, Dou Di Zhu (Fight the Landlord), Niu Niu (Bull Bull), Shi San Shui (Chinese Poker), Zha Jin Hua (Three Card Poker), Pao De Kuai (Run Fast), Shang Rao Da Zha (Bomb Game)
+- **Full Client-Server Architecture** - Dedicated login server, game server, coordination server, and private room server
+- **Cross-Platform Client** - Windows, Android, iOS via Cocos2d-x
+- **High-Performance Server** - Windows IOCP-based async networking with thread pool
+- **Modular Game Framework** - Add new games by implementing a standard interface
+- **Protocol Encryption** - XOR byte-mapping obfuscation with rotating keys
+- **AI Bots** - Built-in robot logic for single-player and testing
+- **Room System** - Public rooms, private rooms (clubs), and tournament support
+
+---
+
+## Architecture Overview
+
+```
++----------------------------------------------------------+
+|                   Client (Cocos2d-x)                     |
+|  +------------+  +-----------+  +----------+             |
+|  | Game Scene |  | Animation |  |  Audio   |             |
+|  +-----+------+  +-----+-----+  +----+-----+            |
+|        |               |              |                   |
+|  +-----v---------------v--------------v------+           |
+|  |         GameFrameBase (Framework)          |           |
+|  |  - UI management                           |           |
+|  |  - Network message routing                 |           |
+|  |  - Game state machine                      |           |
+|  +--------------------+-----------------------+           |
+|                       |                                   |
+|  +--------------------v-----------------------+           |
+|  |        GameLogic (Rules Engine)            |           |
+|  |  - Hand evaluation  - Move validation      |           |
+|  |  - Win detection    - AI search            |           |
+|  +--------------------+-----------------------+           |
+|                       |                                   |
+|  +--------------------v-----------------------+           |
+|  |          Network Layer (TCP)               |           |
+|  |  - Socket engine   - Packet encrypt/decrypt|           |
+|  |  - Auto reconnect  - Heartbeat            |           |
+|  +--------------------+-----------------------+           |
++--------------------------|--------------------------------+
+                           | TCP (Port 3193/3194)
++--------------------------|--------------------------------+
+|                    Server (C++/MFC)                       |
+|  +--------------------v-----------------------+           |
+|  |          Login Server                      |           |
+|  |  - Authentication  - Server list           |           |
+|  +--------------------------------------------+           |
+|  +--------------------------------------------+           |
+|  |          Game Server                       |           |
+|  |  - Table management - Message dispatch     |           |
+|  |  - Score settlement - Anti-cheat           |           |
+|  +--------------------------------------------+           |
+|  +--------------------------------------------+           |
+|  |       Coordination Server                  |           |
+|  |  - Global state    - Cross-server routing  |           |
+|  +--------------------------------------------+           |
+|  +--------------------------------------------+           |
+|  |           Database (SQL Server/ADO)        |           |
+|  +--------------------------------------------+           |
++-----------------------------------------------------------+
+```
+
+---
+
+## Game Modules
+
+| Game | Code | Players | Description |
+|------|------|---------|-------------|
+| Wan Nian Mahjong | `WNMJ` | 4 | Regional Mahjong variant with Chi/Peng/Gang/Hu |
+| Dou Di Zhu | `DDZ` | 3 | Fight the Landlord - classic Chinese card game |
+| Niu Niu | `NiuNiu` | 5 | Bull Bull - fast-paced number matching |
+| Shi San Shui | `13S` | 4 | Chinese Poker - 13 cards into 3 hands |
+| Zha Jin Hua | `ZJH` | 5 | Three Card Poker with bluffing |
+| Pao De Kuai | `PDK` | 3 | Run Fast - shedding-type card game |
+| Shang Rao Da Zha | `DaZha` | 4 | Regional bomb card game (4 decks) |
+
+---
+
+## Project Structure
+
+```
+wnmj/
+├── Classes/                        # Client source code
+│   ├── AppDelegate.cpp             # Application entry point
+│   ├── Define/                     # Core definitions
+│   │   ├── Struct.h                # Data structures (rooms, users, games)
+│   │   ├── Packet.h                # Network packet format
+│   │   ├── CMD_GameServer.h        # Game server commands
+│   │   ├── CMD_LogonServer.h       # Login server commands
+│   │   ├── CardDefine.h            # Card value & suit definitions
+│   │   ├── RightDefine.h           # Permission flags
+│   │   └── ServerRule.h            # Game rule configurations
+│   ├── Games/                      # Game implementations
+│   │   ├── WNMJ/                   # Mahjong (22 files)
+│   │   ├── DDZ/                    # Dou Di Zhu (18 files)
+│   │   ├── NiuNiu/                 # Niu Niu (11 files)
+│   │   ├── 13S/                    # Shi San Shui
+│   │   ├── ZJH/                    # Zha Jin Hua
+│   │   ├── PDK/                    # Pao De Kuai
+│   │   ├── DaZha/                  # Da Zha
+│   │   └── SparrowBase/            # Mahjong base classes
+│   ├── GameFrame/                  # Game framework
+│   │   ├── GameFrameBase.cpp/h     # Base class for all games
+│   │   ├── GamePlayer.cpp/h        # Player management
+│   │   └── ClientUserManager.cpp/h # User session management
+│   ├── Network/                    # Networking layer
+│   │   ├── SocketEngine.cpp/h      # TCP socket engine
+│   │   ├── ClientNetDelegate.cpp/h # Network delegate
+│   │   └── WebReq.cpp/h            # HTTP requests
+│   ├── Scenes/                     # UI scenes (32 files)
+│   │   ├── LogonScene.cpp/h        # Login screen
+│   │   ├── MainScene.cpp/h         # Main lobby
+│   │   ├── CreateScene.cpp/h       # Room creation
+│   │   └── ...
+│   ├── Global/                     # Global state management
+│   ├── Utils/                      # Utilities (MD5, encryption, etc.)
+│   ├── Mission/                    # Network task handlers
+│   └── JniCross/                   # JNI bridge (Android)
+│
+├── Servers/                        # Server source code
+│   ├── Platform.sln                # Visual Studio solution
+│   ├── 服务器组件/                  # Server components
+│   │   ├── 内核引擎/               # Kernel engine (IOCP networking)
+│   │   ├── 登录服务器/             # Login server
+│   │   ├── 游戏服务器/             # Game server
+│   │   ├── 协调服务器/             # Coordination server
+│   │   ├── 私人场服务/             # Private room server
+│   │   └── 网站网关服务器/          # Web gateway
+│   ├── 游戏组件/                   # Game server logic
+│   │   ├── 万年麻将/               # Mahjong server
+│   │   ├── 斗地主/                 # DDZ server
+│   │   └── ...                     # Other games
+│   └── 全局定义/                   # Shared definitions
+│
+├── cocos2d/                        # Cocos2d-x 3.10 engine
+├── proj.win32/                     # Windows build project
+├── proj.android/                   # Android build project
+├── IosApi/                         # iOS platform API
+├── IM_SDK/                         # Instant messaging SDK
+├── Resources/                      # Game assets
+└── CMakeLists.txt                  # CMake build config
+```
+
+---
+
+## Network Protocol
+
+### Packet Format
+
+```
++----------+----------+------------+----------+----------+
+| DataKind | CheckCode| PacketSize | MainCmd  | SubCmd   |
+| (1 byte) | (1 byte) | (2 bytes)  | (2 bytes)| (2 bytes)|
++----------+----------+------------+----------+----------+
+|                    Payload                              |
++--------------------------------------------------------+
+```
+
+### Main Command IDs
+
+| ID | Name | Description |
+|----|------|-------------|
+| 1 | `MDM_GR_LOGON` | Login/Authentication |
+| 2 | `MDM_GR_CONFIG` | Server configuration |
+| 3 | `MDM_GR_USER` | User information |
+| 4 | `MDM_GR_SERVER` | Room/server info |
+| 5 | `MDM_GR_GAME` | In-game messages |
+| 1000 | `MDM_CM_SYSTEM` | System messages (chat, notices) |
+
+---
+
+## Game Logic Examples
+
+### Mahjong (WNMJ) Operations
+
+```cpp
+#define WIK_LEFT      0x01   // Left chi
+#define WIK_CENTER    0x02   // Center chi
+#define WIK_RIGHT     0x04   // Right chi
+#define WIK_PENG      0x08   // Peng (triplet)
+#define WIK_GANG      0x10   // Gang (quad)
+#define WIK_CHI_HU    0x20   // Hu (win)
+```
+
+### Dou Di Zhu Hand Types
+
+| Type | Name | Example |
+|------|------|---------|
+| Single | Single card | 3 |
+| Pair | Two of a kind | 33 |
+| Triple | Three of a kind | 333 |
+| Straight | 5+ consecutive | 34567 |
+| Bomb | Four of a kind | 3333 |
+| Rocket | Both jokers | Black+Red Joker |
+
+### Niu Niu Scoring
+
+| Type | Multiplier | Condition |
+|------|-----------|-----------|
+| No Bull | 1x | No 3-card sum divisible by 10 |
+| Bull 1-6 | 1x | Remainder 1-6 |
+| Bull 7-9 | 2x | Remainder 7-9 |
+| Bull Bull | 3x | All 5 cards sum to multiples of 10 |
+| Five Face | 5x | All face cards (J/Q/K) |
+| Bomb | 6x | Four of a kind |
+
+---
+
+## Build Instructions
+
+### Prerequisites
+
+- **Client**: Visual Studio 2012+, Cocos2d-x 3.10, CMake 3.x
+- **Server**: Visual Studio 2012+ (MFC), SQL Server
+- **Android**: Android NDK r10e+, Android SDK
+
+### Build Client (Windows)
+
+```bash
+# Open the solution file
+# proj.win32/GameClient.sln
+
+# Or build with CMake
+mkdir build && cd build
+cmake .. -G "Visual Studio 12 2013"
+cmake --build . --config Release
+```
+
+### Build Server
+
+```bash
+# Open the server solution
+# Servers/Platform.sln
+
+# Or use the batch build script
+cd Servers
+Build_all.bat
+```
+
+### Build Client (Android)
+
+```bash
+cd proj.android
+# Configure Android NDK/SDK paths in local.properties
+./gradlew assembleRelease
+```
+
+---
+
+## Game Flow
+
+```
+                    +------------------+
+                    |   Login Server   |
+                    +--------+---------+
+                             |
+              Authentication & Server List
+                             |
+                    +--------v---------+
+                    |    Game Lobby     |
+                    +--------+---------+
+                             |
+                   Create / Join Room
+                             |
+                    +--------v---------+
+                    |   Game Server    |
+                    +--------+---------+
+                             |
+            +----------------+----------------+
+            |                |                |
+     +------v------+  +-----v------+  +------v------+
+     |  Deal Cards |  | Game Play  |  |  Settle     |
+     |  (Shuffle)  |  | (Turns)    |  |  (Scores)   |
+     +-------------+  +------------+  +-------------+
+```
+
+---
+
+## Extending with New Games
+
+To add a new game module:
+
+1. **Create game directory** under `Classes/Games/YourGame/`
+2. **Define commands** - Create `YG_CMD.h` with game-specific message IDs
+3. **Implement logic** - Create `YG_GameLogic.h/cpp` inheriting from the base logic class
+4. **Create scene** - Create `YG_GameScene.h/cpp` extending `GameFrameBase`
+5. **Server-side** - Add game component under `Servers/游戏组件/YourGame/`
+6. **Register** - Add the game to `GameCreator` for scene factory routing
+
+Each game module follows a standard pattern:
+- `*_CMD.h` - Protocol definitions
+- `*_GameLogic.h/cpp` - Pure game rules (no UI dependency)
+- `*_GameScene.h/cpp` - Scene rendering and input handling
+- `*_GamePlayer.h/cpp` - Player state management
+
+---
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|-----------|
+| Game Engine | Cocos2d-x 3.10 (C++) |
+| Server Framework | C++ / MFC / IOCP |
+| Database | SQL Server (ADO) |
+| Networking | TCP/IP with custom binary protocol |
+| Encryption | XOR byte-mapping with rotating keys |
+| Voice Chat | YunVa IM SDK |
+| Build System | Visual Studio / CMake / Gradle (Android) |
+| Platforms | Windows, Android, iOS |
+
+---
+
+## Code Statistics
+
+| Module | Files | Description |
+|--------|-------|-------------|
+| Client (Classes) | ~296 | Game client source |
+| Server (Servers) | ~387 | Game server source |
+| Game Logic | ~123 | Game rule implementations |
+| **Total** | **~806** | **All source files** |
+
+---
+
+## Contributing
+
+Contributions are welcome! Here are some ways you can help:
+
+- **Bug Reports** - File issues for bugs you encounter
+- **New Games** - Implement additional card/board games using the framework
+- **Platform Support** - Improve iOS/macOS/Linux builds
+- **Documentation** - Translate, improve, or add documentation
+- **Performance** - Optimize server networking or client rendering
+
+Please read the code structure section above before contributing.
+
+---
+
+## License
+
+This project is open source. Please see individual component licenses in the `cocos2d/licenses/` directory for third-party dependencies.
+
+---
+
+---
